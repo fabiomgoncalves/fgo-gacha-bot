@@ -1,0 +1,39 @@
+# dependencies
+/node_modules
+node_modules
+./**/node_modules/**
+.env
+
+# production
+/dist
+
+# IDEs and editors
+/.idea
+/.vscode
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# misc
+.DS_Store
+
+# npm
+npm-debug.log*
+
+# IDEs
+## IntelliJ
+*.iml
+
+# VisualStudioCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+## VisualStudioCode Patch ###
+## Ignore all local history of files
+.history
