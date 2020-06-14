@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { Scraper } from './scraper';
-import { CardType, IServant } from './card';
-import { constants } from '../config';
+import { CardType, IServant } from './types';
+import { constants } from '../config/constants';
 
 export class ScraperServants extends Scraper<IServant> {
     constructor() {

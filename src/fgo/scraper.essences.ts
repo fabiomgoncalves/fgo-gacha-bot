@@ -1,6 +1,6 @@
 import { Scraper } from './scraper';
-import { CardType, ICard } from './card';
-import { constants } from '../config';
+import { CardType, ICard } from './types';
+import { constants } from '../config/constants';
 
 export class ScraperEssences extends Scraper<ICard> {
     constructor() {

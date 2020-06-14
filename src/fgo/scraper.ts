@@ -1,10 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 import cheerio from 'cheerio';
-import { constants } from '../config';
-import { cache } from '../util';
+import { constants } from '../config/constants';
+import { cache } from '../util/cache';
+import { ICard } from './types';
 
 export abstract class Scraper<T> {
-    protected cards: T[];
+    protected cards: ICard[];
 
     private readonly listPage: string;
 

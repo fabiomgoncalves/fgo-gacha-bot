@@ -7,8 +7,8 @@ export interface ICard {
 }
 
 export enum CardType {
-    Servant,
-    Essence
+    Servant = 'servant',
+    Essence = 'essence'
 }
 
 export interface IServant extends ICard{

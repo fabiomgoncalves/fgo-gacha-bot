@@ -1,21 +1,5 @@
-interface IRate {
-    rarity: number,
-    rate: number,
-}
-
-interface IConstants {
-    wikiBaseUrl: string,
-    servantListPage: string,
-    essenceListPage: string,
-
-    servantCacheKey: string,
-    essenceCacheKey: string,
-
-    rates: {
-        servants: IRate[],
-        essences: IRate[],
-    }
-}
+import { IConstants } from './types';
+import { CardType } from '../fgo/types';
 
 export const constants: IConstants = {
     wikiBaseUrl: 'https://fategrandorder.fandom.com',
@@ -28,14 +12,32 @@ export const constants: IConstants = {
     rates: {
         servants: [
             {
+                type: CardType.Servant,
+                rarity: 0,
+                rate: 0,
+            },
+            {
+                type: CardType.Servant,
+                rarity: 1,
+                rate: 0,
+            },
+            {
+                type: CardType.Servant,
+                rarity: 2,
+                rate: 0.0,
+            },
+            {
+                type: CardType.Servant,
                 rarity: 3,
                 rate: 0.40,
             },
             {
+                type: CardType.Servant,
                 rarity: 4,
                 rate: 0.03,
             },
             {
+                type: CardType.Servant,
                 rarity: 5,
                 rate: 0.01,
             },
@@ -43,14 +45,32 @@ export const constants: IConstants = {
 
         essences: [
             {
+                type: CardType.Essence,
+                rarity: 0,
+                rate: 0,
+            },
+            {
+                type: CardType.Essence,
+                rarity: 1,
+                rate: 0,
+            },
+            {
+                type: CardType.Essence,
+                rarity: 2,
+                rate: 0.0,
+            },
+            {
+                type: CardType.Essence,
                 rarity: 3,
                 rate: 0.40,
             },
             {
+                type: CardType.Essence,
                 rarity: 4,
                 rate: 0.12,
             },
             {
+                type: CardType.Essence,
                 rarity: 5,
                 rate: 0.04,
             },
