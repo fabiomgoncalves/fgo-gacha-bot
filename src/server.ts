@@ -18,9 +18,9 @@ app.get('/', (_, res) => {
 
 app.get('/gacha', async (req, res) => {
     const stage = req.query.stage ? `${req.query.stage}` : '1';
-    const images = (await gacha.gacha(stage)).map((image) => `<img src="${image}" width="15%"/>`);
-    const top = images.splice(0, 5);
-    res.send(`${top.join('')}<br><br>${images.join('')}`);
+    // const images = ().map((image) => `<img src="${image}" width="15%"/>`);
+    // const top = images.splice(0, 5);
+    res.send(await gacha.gacha(stage));
 });
 
 Promise.all([

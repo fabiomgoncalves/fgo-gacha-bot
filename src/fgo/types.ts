@@ -4,6 +4,7 @@ export interface ICard {
     name: string,
     rarity: number,
     url: string,
+    imageUrl?: string,
 }
 
 export enum CardType {

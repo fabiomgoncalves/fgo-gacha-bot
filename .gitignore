@@ -6,8 +6,8 @@ node_modules
 
 # production
 /dist
-/resources/images/essences/cards/**
-/resources/images/servants/cards/**
+/resources/images/essence/cards/**
+/resources/images/servant/cards/**
 
 # IDEs and editors
 /.idea
