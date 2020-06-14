@@ -26,7 +26,7 @@ export abstract class Scraper<T> {
 
     protected getNameAndUrl = (e: Cheerio): {name: string, url: string} => {
         const name = e.text();
-        const url = this.buildPageUrl(e.attr('href') || '');
+        const url = this.buildPageUrl(e.attr('href') || 'MISSING_URL');
 
         return { name, url };
     };
@@ -40,8 +40,6 @@ export abstract class Scraper<T> {
     protected abstract cardParseFn(cells: Cheerio, subPageResponse: AxiosResponse): void;
 
     public scrape: () => Promise<void> = async () => {
-        console.log('scrape');
-
         const response = await axios.get(this.buildPageUrl(this.listPage));
         let $ = cheerio.load(response.data);
 
@@ -70,4 +68,6 @@ export abstract class Scraper<T> {
 
         cache.set(this.cacheKey, this.cards);
     }
+
+    public abstract getCardImage(cardPage: string, stage?: string): Promise<string>;
 }

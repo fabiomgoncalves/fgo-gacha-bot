@@ -19,3 +19,7 @@ export interface IConstants {
         essences: IRate[],
     }
 }
+
+export interface IRules {
+    servants: string[]
+}

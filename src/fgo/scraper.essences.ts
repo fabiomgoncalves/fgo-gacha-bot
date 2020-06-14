@@ -1,3 +1,5 @@
+import axios from 'axios';
+import cheerio from 'cheerio';
 import { Scraper } from './scraper';
 import { CardType, ICard } from './types';
 import { constants } from '../config/constants';
@@ -23,5 +25,13 @@ export class ScraperEssences extends Scraper<ICard> {
 
             this.cards.push(essence);
         }
+    }
+
+    async getCardImage(cardPage: string): Promise<string> {
+        const page = await axios.get(cardPage);
+        const $ = cheerio.load(page.data);
+        const cardImage = $('figure > a').attr('href');
+
+        return cardImage || 'MISSING_ESSENCE_IMAGE';
     }
 }

@@ -2,6 +2,8 @@ import { cache } from '../util/cache';
 import { constants } from '../config/constants';
 import { IRate } from '../config/types';
 import { CardType, ICard } from './types';
+import { ScraperServants } from './scraper.servants';
+import { ScraperEssences } from './scraper.essences';
 
 const sample = (rates: IRate[]): IRate => {
     const sum = rates.reduce((a, b) => a + b.rate, 0);
@@ -57,23 +59,46 @@ const get4StarCard = (): IRate => {
 
 const getRandomCard = () => sample([...constants.rates.servants, ...constants.rates.essences]);
 
-export const gacha = (): ICard[] => {
-    const cardPool = {
-        [CardType.Servant]: cache.get(constants.servantCacheKey),
-        [CardType.Essence]: cache.get(constants.essenceCacheKey),
-    };
+export class Gacha {
+    private scraperServants: ScraperServants;
 
-    const randomCards = [];
-    randomCards.push(get3StarServant());
-    randomCards.push(get4StarCard());
+    private scraperEssences: ScraperEssences;
 
-    for (let i = 0; i < 7; i += 1) {
-        randomCards.push(getRandomCard());
+    constructor() {
+        this.scraperServants = new ScraperServants();
+        this.scraperEssences = new ScraperEssences();
     }
 
-    return randomCards.map((card) => {
-        const slice = cardPool[card.type].filter((p) => p.rarity === card.rarity);
+    public gacha = (stage: string): Promise<string[]> => {
+        const cardPool = {
+            [CardType.Servant]: cache.get(constants.servantCacheKey),
+            [CardType.Essence]: cache.get(constants.essenceCacheKey),
+        };
 
-        return slice[Math.floor(Math.random() * slice.length)];
-    }).sort(() => Math.random() - 0.5);
-};
+        const randomCards = [];
+        randomCards.push(get3StarServant());
+        randomCards.push(get4StarCard());
+
+        for (let i = 0; i < 8; i += 1) {
+            randomCards.push(getRandomCard());
+        }
+
+        const banner = randomCards.map((card) => {
+            const slice = cardPool[card.type].filter((p) => p.rarity === card.rarity);
+
+            return slice[Math.floor(Math.random() * slice.length)];
+        }).sort(() => Math.random() - 0.5);
+
+        return Promise.all(
+            banner.map((card) => this.getCardImage(card, stage)),
+        );
+    }
+
+    private getCardImage(card: ICard, stage: string): Promise<string> {
+        if (card.type === CardType.Servant) {
+            return this.scraperServants.getCardImage(card.url, stage);
+        }
+
+        return this.scraperEssences.getCardImage(card.url);
+    }
+}
