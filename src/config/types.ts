@@ -6,6 +6,11 @@ export interface IRate {
     rate: number,
 }
 
+export interface IImageSize {
+    width: number,
+    height: number,
+}
+
 export interface IConstants {
     wikiBaseUrl: string,
     servantListPage: string,
@@ -14,12 +19,20 @@ export interface IConstants {
     servantCacheKey: string,
     essenceCacheKey: string,
 
+    stages: string[],
+
     rates: {
-        servants: IRate[],
-        essences: IRate[],
+        [CardType.Servant]: IRate[],
+        [CardType.Essence]: IRate[],
+    },
+
+    images: {
+        frame: IImageSize,
+        [CardType.Servant]: IImageSize,
+        [CardType.Essence]: IImageSize,
     }
 }
 
 export interface IRules {
-    servants: string[]
+    [CardType.Servant]: string[]
 }

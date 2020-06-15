@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import cheerio from 'cheerio';
 import { Scraper } from './scraper';
-import { CardType, IServant } from './types';
+import { CardType, ICard, IServant } from './types';
 import { constants } from '../config/constants';
 import { rules } from '../config/rules';
 
@@ -23,7 +23,7 @@ export class ScraperServants extends Scraper<IServant> {
             const rarity = this.getRarity(cells.eq(2));
 
             if (id && name && url && rarity
-                && !rules.servants.find((rule) => rule.includes(name))) {
+                && !rules.servant.find((rule) => rule.includes(name))) {
                 const servant: IServant = {
                     id,
                     name,
@@ -38,26 +38,38 @@ export class ScraperServants extends Scraper<IServant> {
         }
     }
 
-    async getCardImage(cardPage: string, stage: string): Promise<string> {
-        const page = await axios.get(cardPage);
-        const $ = cheerio.load(page.data);
-        const normalizedStage = Math.max(0, Math.min((parseInt(stage || '1', 10)), 5));
-        let cardImage;
-
-        if (normalizedStage !== 5) {
-            cardImage = $(`figure a[title='Stage ${stage}']`).attr('href');
-
-            if (!cardImage) {
-                cardImage = $(`figure a[title='Stage${stage}']`).attr('href');
-            }
-
-            if (!cardImage && normalizedStage < 4) {
-                cardImage = $('figure a[title=\'Stage 1-3\']').attr('href');
-            }
-        } else {
-            cardImage = $('figure a[title^=\'April\']').attr('href');
+    async getCardImage(card: ICard, stage: string): Promise<string> {
+        if (this.cardImageExists(card, stage)) {
+            return this.getCardImagePath(card, stage);
         }
 
-        return cardImage || 'MISSING_SERVANT_IMAGE';
+        const page = await axios.get(card.url);
+        const $ = cheerio.load(page.data);
+        const normalizedStage = constants.stages.includes(stage) ? stage : '1';
+        const stageImages: Record<string, string> = {};
+
+        $('figure a').each((_, e) => {
+            let linkStage = $(e).attr('title')?.toLowerCase().replace(/[^\w\d]/g, '').replace('stage', '') ?? 'INVALID';
+
+            if (linkStage.startsWith('april')) {
+                linkStage = 'april';
+            }
+
+            stageImages[linkStage] = $(e).attr('href') ?? 'MISSING_URL';
+        });
+
+        let cardImage = stageImages[normalizedStage];
+
+        if (!cardImage) {
+            cardImage = stageImages['13'];
+        }
+
+        if (!cardImage) {
+            console.log(card);
+        } else {
+            await this.saveCardImage(cardImage, this.getCardImagePath(card, stage));
+        }
+
+        return cardImage;
     }
 }

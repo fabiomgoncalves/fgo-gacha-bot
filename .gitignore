@@ -21,6 +21,7 @@ node_modules
 
 # misc
 .DS_Store
+/resources.old
 
 # npm
 npm-debug.log*

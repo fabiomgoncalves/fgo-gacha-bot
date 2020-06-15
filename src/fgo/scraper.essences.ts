@@ -27,11 +27,21 @@ export class ScraperEssences extends Scraper<ICard> {
         }
     }
 
-    async getCardImage(cardPage: string): Promise<string> {
-        const page = await axios.get(cardPage);
+    async getCardImage(card: ICard): Promise<string> {
+        if (this.cardImageExists(card)) {
+            return this.getCardImagePath(card);
+        }
+
+        const page = await axios.get(card.url);
         const $ = cheerio.load(page.data);
         const cardImage = $('figure > a').attr('href');
 
-        return cardImage || 'MISSING_ESSENCE_IMAGE';
+        if (!cardImage) {
+            console.log(card);
+        } else {
+            await this.saveCardImage(cardImage, this.getCardImagePath(card));
+        }
+
+        return cardImage ?? 'MISSING';
     }
 }

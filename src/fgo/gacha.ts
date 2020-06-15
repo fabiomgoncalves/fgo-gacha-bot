@@ -1,64 +1,10 @@
-import { createCanvas, loadImage } from 'canvas';
+import { createCanvas, loadImage, CanvasRenderingContext2D } from 'canvas';
 import { cache } from '../util/cache';
 import { CardType, ICard, IServant } from './types';
 import { constants } from '../config/constants';
 import { IRate } from '../config/types';
 import { ScraperEssences } from './scraper.essences';
 import { ScraperServants } from './scraper.servants';
-
-const sample = (rates: IRate[]): IRate => {
-    const sum = rates.reduce((a, b) => a + b.rate, 0);
-
-    if (sum <= 0) {
-        throw Error('Rates must sum to a value greater than zero');
-    }
-
-    const normalized = rates.map((rate) => rate.rate / sum);
-    const random = Math.random();
-    let total = 0;
-
-    for (let i = 0; i < normalized.length; i += 1) {
-        total += normalized[i];
-
-        if (random < total) {
-            return rates[i];
-        }
-    }
-
-    return rates[Math.floor(Math.random() * rates.length)];
-};
-
-const get3StarServant = (): IRate => {
-    const fixedRates = constants.rates.servants[4].rate + constants.rates.servants[5].rate;
-    const rates: IRate[] = [
-        {
-            ...constants.rates.servants[3],
-            rate: 1 - fixedRates,
-        },
-        constants.rates.servants[4],
-        constants.rates.servants[5],
-    ];
-
-    return sample(rates);
-};
-
-const get4StarCard = (): IRate => {
-    const fixedRates = constants.rates.servants[4].rate + constants.rates.servants[5].rate
-        + constants.rates.essences[5].rate;
-    const rates: IRate[] = [
-        constants.rates.servants[4],
-        constants.rates.servants[5],
-        {
-            ...constants.rates.essences[4],
-            rate: 1 - fixedRates,
-        },
-        constants.rates.essences[5],
-    ];
-
-    return sample(rates);
-};
-
-const getRandomCard = () => sample([...constants.rates.servants, ...constants.rates.essences]);
 
 export class Gacha {
     private scraperServants: ScraperServants;
@@ -70,84 +16,149 @@ export class Gacha {
         this.scraperEssences = new ScraperEssences();
     }
 
-    public gacha = async (stage: string): Promise<string> => {
+    private async drawCanvas(cards: ICard[], stage: string): Promise<string> {
+        const cardsWithImage = await Promise.all(
+            cards.map((card) => this.getCardWithImage(card, stage)),
+        );
+        const canvas = createCanvas(
+            constants.images.frame.width * 5,
+            constants.images.frame.height * 2,
+        );
+        const canvasContext = canvas.getContext('2d');
+
+        await Gacha.drawCanvasRow(cardsWithImage, true, canvasContext);
+        await Gacha.drawCanvasRow(cardsWithImage, false, canvasContext);
+
+        return `<img src="${canvas.toDataURL()}" alt="Gacha" />`;
+    }
+
+    private static async drawCanvasRow(
+        cardsWithImage: ICard[],
+        top: boolean, canvasContext: CanvasRenderingContext2D,
+    ): Promise<void> {
+        for (let i = 0; i < 5; i += 1) {
+            const index = top ? i : i + 5;
+            const card = cardsWithImage[index];
+            const image = await loadImage(`${card.imageUrl}`);
+            const dx = i * constants.images.frame.width;
+            const dy = top ? 0 : constants.images.frame.height;
+
+            canvasContext.drawImage(
+                image,
+                dx,
+                dy + (card.type === CardType.Servant ? 24 : 0),
+                constants.images[card.type].width,
+                constants.images[card.type].height,
+            );
+
+            const overlay = await loadImage(`${__dirname}/../../resources/images/${card.type}/frame/${card.rarity}.png`);
+
+            canvasContext.drawImage(overlay, dx, dy);
+
+            if (card.type === CardType.Servant) {
+                const servant = card as IServant;
+                const cls = await loadImage(`${__dirname}/../../resources/images/servant/classes/${servant.class.toLowerCase()}_${card.rarity}.png`);
+
+                canvasContext.drawImage(
+                    cls,
+                    i * constants.images.frame.width + constants.images.frame.width / 2 - 80 / 2,
+                    dy + (874 - 104),
+                );
+            }
+        }
+    }
+
+    private async getCardWithImage(card: ICard, stage: string): Promise<ICard> {
+        return {
+            ...card,
+            imageUrl: await this.getCardImage(card, stage),
+        };
+    }
+
+    private async getCardImage(card: ICard, stage: string): Promise<string> {
+        if (card.type === CardType.Servant) {
+            return this.scraperServants.getCardImage(card, stage);
+        }
+
+        return this.scraperEssences.getCardImage(card);
+    }
+
+    private sample(rates: IRate[]): IRate {
+        const sum = rates.reduce((a, b) => a + b.rate, 0);
+
+        if (sum <= 0) {
+            throw Error('Rates must sum to a value greater than zero');
+        }
+
+        const normalized = rates.map((rate) => rate.rate / sum);
+        const random = Math.random();
+        let total = 0;
+
+        for (let i = 0; i < normalized.length; i += 1) {
+            total += normalized[i];
+
+            if (random < total) {
+                return rates[i];
+            }
+        }
+
+        return rates[Math.floor(Math.random() * rates.length)];
+    }
+
+    private get3StarServant(): IRate {
+        const fixedRates = constants.rates.servant[4].rate + constants.rates.servant[5].rate;
+        const rates: IRate[] = [
+            {
+                ...constants.rates.servant[3],
+                rate: 1 - fixedRates,
+            },
+            constants.rates.servant[4],
+            constants.rates.servant[5],
+        ];
+
+        return this.sample(rates);
+    }
+
+    private get4StarCard(): IRate {
+        const fixedRates = constants.rates.servant[4].rate + constants.rates.servant[5].rate
+            + constants.rates.essence[5].rate;
+        const rates: IRate[] = [
+            constants.rates.servant[4],
+            constants.rates.servant[5],
+            {
+                ...constants.rates.essence[4],
+                rate: 1 - fixedRates,
+            },
+            constants.rates.essence[5],
+        ];
+
+        return this.sample(rates);
+    }
+
+    private getRandomCard() {
+        return this.sample([...constants.rates.servant, ...constants.rates.essence]);
+    }
+
+    public async gacha(stage: string): Promise<string> {
         const cardPool = {
             [CardType.Servant]: cache.get(constants.servantCacheKey),
             [CardType.Essence]: cache.get(constants.essenceCacheKey),
         };
 
         const randomCards = [];
-        randomCards.push(get3StarServant());
-        randomCards.push(get4StarCard());
+        randomCards.push(this.get3StarServant());
+        randomCards.push(this.get4StarCard());
 
         for (let i = 0; i < 8; i += 1) {
-            randomCards.push(getRandomCard());
+            randomCards.push(this.getRandomCard());
         }
 
-        const banner = randomCards.map((card) => {
+        const banner = randomCards.map((card: IRate) => {
             const slice = cardPool[card.type].filter((p) => p.rarity === card.rarity);
 
             return slice[Math.floor(Math.random() * slice.length)];
         }).sort(() => Math.random() - 0.5);
 
-        const updatedBanner = await Promise.all(
-            banner.map((card) => this.getCardWithImageUrl(card, stage)),
-        );
-
-        const canvas = createCanvas(512 * 5, 874 * 2);
-        const ctx = canvas.getContext('2d');
-
-        for (let i = 0; i < 5; i += 1) {
-            const card = updatedBanner[i];
-            const image = await loadImage(`${card.imageUrl}`);
-            ctx.drawImage(
-                image, i * 512,
-                card.type === CardType.Servant ? 24 : 0,
-            );
-
-            const overlay = await loadImage(`${__dirname}/../../resources/images/${card.type}/frame/${card.rarity}.png`);
-            ctx.drawImage(overlay, i * 512, 0);
-
-            if (card.type === CardType.Servant) {
-                const servant = card as IServant;
-
-                const cls = await loadImage(`${__dirname}/../../resources/images/servant/classes/${servant.class.toLowerCase()}_${card.rarity}.png`);
-                ctx.drawImage(cls, i * 512 + 512 / 2 - 80 / 2, 874 - 104);
-            }
-        }
-
-        for (let i = 5; i < 10; i += 1) {
-            const card = updatedBanner[i];
-            const image = await loadImage(`${card.imageUrl}`);
-            ctx.drawImage(
-                image, (i - 5) * 512,
-                card.type === CardType.Servant ? 874 + 24 : 874,
-            );
-
-            const overlay = await loadImage(`${__dirname}/../../resources/images/${card.type}/frame/${card.rarity}.png`);
-            ctx.drawImage(overlay, (i - 5) * 512, 874);
-
-            if (card.type === CardType.Servant) {
-                const servant = card as IServant;
-
-                const cls = await loadImage(`${__dirname}/../../resources/images/servant/classes/${servant.class.toLowerCase()}_${card.rarity}.png`);
-                ctx.drawImage(cls, (i - 5) * 512 + 512 / 2 - 80 / 2, 874 + (874 - 104));
-            }
-        }
-
-        return `<img src="${canvas.toDataURL()}" />`;
-    }
-
-    private getCardWithImageUrl = async (card: ICard, stage: string): Promise<ICard> => ({
-        ...card,
-        imageUrl: await this.getCardImage(card, stage),
-    })
-
-    private getCardImage(card: ICard, stage: string): Promise<string> {
-        if (card.type === CardType.Servant) {
-            return this.scraperServants.getCardImage(card.url, stage);
-        }
-
-        return this.scraperEssences.getCardImage(card.url);
+        return this.drawCanvas(banner, stage);
     }
 }
