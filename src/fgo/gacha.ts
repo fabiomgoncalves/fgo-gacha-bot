@@ -29,7 +29,7 @@ export class Gacha {
         await Gacha.drawCanvasRow(cardsWithImage, true, canvasContext);
         await Gacha.drawCanvasRow(cardsWithImage, false, canvasContext);
 
-        return `<img src="${canvas.toDataURL()}" alt="Gacha" />`;
+        return `<img src="${canvas.toDataURL()}" alt="Gacha" width="50%" />`;
     }
 
     private static async drawCanvasRow(
@@ -159,6 +159,9 @@ export class Gacha {
             return slice[Math.floor(Math.random() * slice.length)];
         }).sort(() => Math.random() - 0.5);
 
-        return this.drawCanvas(banner, stage);
+        const canvasImage = await this.drawCanvas(banner, stage);
+        const cardInfo = banner.map((card) => `[<a href="${card.url}" target="_blank">${`${card.id}`.padStart(4, '0')}</a>]`);
+
+        return `${cardInfo.slice(0, 5).join(' ')}<br>${cardInfo.slice(5, 10).join(' ')}<br>${canvasImage}`;
     }
 }
