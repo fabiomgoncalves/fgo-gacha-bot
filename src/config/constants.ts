@@ -83,16 +83,25 @@ export const constants: IConstants = {
         frame: {
             width: 512,
             height: 874,
+            offset: 0,
+        },
+
+        class: {
+            width: 80,
+            height: 80,
+            offset: 104,
         },
 
         [CardType.Servant]: {
             width: 512,
             height: 724,
+            offset: 24,
         },
 
         [CardType.Essence]: {
             width: 512,
             height: 874,
+            offset: 0,
         },
     },
 };

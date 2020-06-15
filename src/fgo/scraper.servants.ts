@@ -55,7 +55,9 @@ export class ScraperServants extends Scraper<IServant> {
                 linkStage = 'april';
             }
 
-            stageImages[linkStage] = $(e).attr('href') ?? 'MISSING_URL';
+            if (!Object.keys(stageImages).includes(linkStage)) {
+                stageImages[linkStage] = $(e).attr('href') ?? 'MISSING_URL';
+            }
         });
 
         let cardImage = stageImages[normalizedStage];

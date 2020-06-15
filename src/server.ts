@@ -16,11 +16,12 @@ app.get('/', (_, res) => {
     });
 });
 
+app.get('/waifu', async (req, res) => {
+    res.send(await gacha.waifu(`${req.query.stage}`));
+});
+
 app.get('/gacha', async (req, res) => {
-    const stage = req.query.stage ? `${req.query.stage}` : '1';
-    // const images = ().map((image) => `<img src="${image}" width="15%"/>`);
-    // const top = images.splice(0, 5);
-    res.send(await gacha.gacha(stage));
+    res.send(await gacha.gacha(`${req.query.stage}`, parseInt(`${req.query.howManyCards}`, 10)));
 });
 
 Promise.all([

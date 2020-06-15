@@ -9,6 +9,7 @@ export interface IRate {
 export interface IImageSize {
     width: number,
     height: number,
+    offset: number,
 }
 
 export interface IConstants {
@@ -28,6 +29,7 @@ export interface IConstants {
 
     images: {
         frame: IImageSize,
+        class: IImageSize,
         [CardType.Servant]: IImageSize,
         [CardType.Essence]: IImageSize,
     }
@@ -35,4 +37,10 @@ export interface IConstants {
 
 export interface IRules {
     [CardType.Servant]: string[]
+}
+
+export interface IConfig {
+    cardsPerRoll: number,
+    cardsPerRow: number,
+    cardMargin: number,
 }
