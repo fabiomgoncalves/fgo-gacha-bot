@@ -37,7 +37,7 @@ export class ScraperEssences extends Scraper<ICard> {
         const cardImage = $('figure > a').attr('href');
 
         if (!cardImage) {
-            console.log(card);
+            console.log(`Error: ${card}`);
         } else {
             await this.saveCardImage(cardImage, this.getCardImagePath(card));
         }

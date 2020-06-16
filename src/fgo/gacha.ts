@@ -1,6 +1,8 @@
-import { createCanvas, loadImage, CanvasRenderingContext2D } from 'canvas';
+import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas';
 import { cache } from '../util/cache';
-import { CardType, ICard, IServant } from './types';
+import {
+    CardType, ICard, IResponse, IServant,
+} from './types';
 import { constants } from '../config/constants';
 import { IRate } from '../config/types';
 import { ScraperEssences } from './scraper.essences';
@@ -18,14 +20,10 @@ export class Gacha {
         this.scraperEssences = new ScraperEssences();
     }
 
-    private async drawCanvas(
-        cards: ICard[],
-        stage: string,
+    private static async drawCanvas(
+        rows: ICard[][],
         numberOfCards: number,
-    ): Promise<string> {
-        const cardsWithImage = await Promise.all(
-            cards.map((card) => this.getCardWithImage(card, stage)),
-        );
+    ): Promise<Buffer> {
         const canvas = createCanvas(
             constants.images.frame.width * config.cardsPerRow
             + config.cardMargin * (config.cardsPerRow - 1),
@@ -35,24 +33,23 @@ export class Gacha {
         );
         const canvasContext = canvas.getContext('2d');
 
-        await Gacha.drawCanvasRows(cardsWithImage, canvasContext);
+        await Gacha.drawCanvasRows(rows, canvasContext);
 
-        return `<img src="${canvas.toDataURL()}" alt="Gacha" width="50%" />`;
+        return canvas.toBuffer();
     }
 
     private static async drawCanvasRows(
-        cardsWithImage: ICard[],
+        rows: ICard[][],
         canvasContext: CanvasRenderingContext2D,
     ): Promise<void> {
-        const rows = chunk<ICard>(cardsWithImage, config.cardsPerRow);
-
-        // TODO Inverse chunk order, start bottom to top, center when cards in row less than per row
         for (let row = 0; row < rows.length; row += 1) {
             for (let column = 0; column < rows[row].length; column += 1) {
                 const card = rows[row][column];
                 const image = await loadImage(`${card.image}`);
                 const overlay = await loadImage(`${__dirname}/../../resources/images/${card.type}/frame/${card.rarity}.png`);
-                const dx = column * constants.images.frame.width + column * config.cardMargin;
+                const dxI = constants.images.frame.width + config.cardMargin;
+                const dx = column * dxI + (canvasContext.canvas.width
+                    - (constants.images.frame.width + (rows[row].length - 1) * dxI)) / 2;
                 const dy = row * constants.images.frame.height + row * config.cardMargin;
 
                 canvasContext.drawImage(
@@ -150,26 +147,30 @@ export class Gacha {
         return this.sample([...constants.rates.servant, ...constants.rates.essence]);
     }
 
-    private static getBannerInfo(cards: ICard[]): string {
-        const rows = chunk<ICard>(cards, config.cardsPerRow);
+    private static getBannerInfo(rows: ICard[][]): string {
         let bannerInfo = '';
+        const maxLineLength = 7 * config.cardsPerRow + 3 * (config.cardsPerRow - 1);
 
         rows.forEach((row) => {
-            bannerInfo += `${row.map((card) => `<a href="${card.url}" target="_blank">${`${card.id}`.padStart(4, '0')}</a>`)
-                .join(' | ')}<br>`;
+            const addSize = (maxLineLength - (7 * row.length + 3 * (row.length - 1)));
+            const line = `${row.map((card) => `${card.type === CardType.Servant ? 'S ' : 'CE'} [${`${card.id}`.padStart(4, '0')}](${card.url})`).join(' | ')}`;
+
+            bannerInfo += `${' ‎'.repeat(Math.max(0, (addSize))) + line}\n`;
         });
 
         return bannerInfo;
     }
 
-    public async gacha(stage: string, howManyCards: number): Promise<string> {
-        const numberOfCards = Number.isNaN(howManyCards) ? config.cardsPerRoll : howManyCards;
+    public async gacha(stage: string, howManyCards: number): Promise<IResponse> {
+        const stageAsString = stage ? `${stage}` : '1';
+        const numberOfCards = howManyCards ?? config.cardsPerRoll;
+
         const cardPool = {
             [CardType.Servant]: cache.get(constants.servantCacheKey),
             [CardType.Essence]: cache.get(constants.essenceCacheKey),
         };
 
-        const randomCards = [];
+        const randomCards: IRate[] = [];
         randomCards.push(this.get3StarServant());
         randomCards.push(this.get4StarCard());
 
@@ -183,13 +184,23 @@ export class Gacha {
             return slice[Math.floor(Math.random() * slice.length)];
         }).sort(() => Math.random() - 0.5);
 
-        const canvasImage = await this.drawCanvas(banner, stage, numberOfCards);
-        const bannerInfo = Gacha.getBannerInfo(banner);
+        const cardsWithImage = await Promise.all(
+            banner.map((card) => this.getCardWithImage(card, stageAsString)),
+        );
 
-        return `${bannerInfo}<br>${canvasImage}`;
+        const rows = chunk<ICard>(cardsWithImage, config.cardsPerRow).reverse();
+        const bannerInfo = Gacha.getBannerInfo(rows);
+        const bannerImage = await Gacha.drawCanvas(rows, numberOfCards);
+
+        return {
+            description: bannerInfo,
+            image: bannerImage,
+        };
     }
 
-    public async waifu(stage?: string): Promise<string> {
+    public async waifu(stage?: string): Promise<IResponse> {
+        const stageAsString = stage ? `${stage}` : constants.stages[Math.floor(Math.random() * constants.stages.length)];
+
         const rates: IRate[] = [
             {
                 ...constants.rates.servant[0],
@@ -213,7 +224,7 @@ export class Gacha {
         const card = slice[Math.floor(Math.random() * slice.length)];
         const cardWithImage = await this.getCardWithImage(
             card,
-            stage ?? constants.stages[Math.floor(Math.random() * constants.stages.length)],
+            stageAsString,
         );
 
         const canvas = createCanvas(
@@ -230,6 +241,9 @@ export class Gacha {
             constants.images[CardType.Servant].height,
         );
 
-        return `[${cardWithImage.rarity}] <a href="${cardWithImage.url}" target="_blank">${cardWithImage.name}</a><br><img src="${canvas.toDataURL()}" alt="Waifu" />`;
+        return {
+            description: `[${cardWithImage.name}](${cardWithImage.url}) (${cardWithImage.id})`,
+            image: canvas.toBuffer(),
+        };
     }
 }

@@ -15,3 +15,8 @@ export enum CardType {
 export interface IServant extends ICard{
     class: string
 }
+
+export interface IResponse {
+    description: string,
+    image: Buffer,
+}

@@ -1,5 +1,5 @@
 export function chunk<T>(array: T[], size: number): T[][] {
-    const chunkedArr = [];
+    const chunkedArr:T[][] = [];
 
     for (let i = 0; i < array.length; i += 1) {
         const last: T[] = chunkedArr[chunkedArr.length - 1];

@@ -67,7 +67,7 @@ export class ScraperServants extends Scraper<IServant> {
         }
 
         if (!cardImage) {
-            console.log(card);
+            console.log(`Error: ${card}`);
         } else {
             await this.saveCardImage(cardImage, this.getCardImagePath(card, stage));
         }

@@ -1,25 +1,27 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
-    "noImplicitAny": true,
-    "target": "es6",
-    "module": "commonjs",
-    "allowJs": false,
-    "declaration": false,
-    "moduleResolution": "node",
-    "sourceMap": false,
-    "inlineSources": false,
-    "strict": true,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "lib": [
-      "dom",
-      "es2017"
-    ],
-    "experimentalDecorators": true,
-    "baseUrl": "."
+      "allowJs": false,
+      "allowSyntheticDefaultImports": true,
+      "declaration": false,
+      "emitDecoratorMetadata": true,
+      "esModuleInterop": true,
+      "experimentalDecorators": true,
+      "forceConsistentCasingInFileNames": true,
+      "importHelpers": true,
+      "inlineSources": false,
+      "lib": [
+          "es2017",
+          "esnext.asynciterable"
+      ],
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "noFallthroughCasesInSwitch": true,
+      "noImplicitAny": true,
+      "noImplicitReturns": true,
+      "outDir": "./dist/",
+      "sourceMap": true,
+      "strict": true,
+      "target": "es2017"
   },
   "include": ["src/**/*"],
   "exclude": [

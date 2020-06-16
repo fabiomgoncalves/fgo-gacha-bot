@@ -1,7 +1,7 @@
 import { IConfig } from './types';
 
 export const config: IConfig = {
-    cardsPerRoll: 10,
-    cardsPerRow: 5,
+    cardsPerRoll: 11,
+    cardsPerRow: 6,
     cardMargin: 20,
 };
