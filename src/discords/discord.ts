@@ -8,7 +8,7 @@ interface CommandArgs {
     howManyCards: number
 }
 
-@Discord('!')
+@Discord('!!')
 export class DiscordApp {
     @Command('gacha :stage :howManyCards')
     async gacha(command: CommandMessage<CommandArgs>): Promise<void> {
