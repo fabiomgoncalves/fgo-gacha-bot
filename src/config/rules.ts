@@ -1,7 +1,7 @@
-import { IRules } from './types';
+import { Rules } from './types';
 import { CardType } from '../fgo/types';
 
-export const rules: IRules = {
+export const rules: Rules = {
     [CardType.Servant]: [
         'Mashu Kyrielight',
     ],

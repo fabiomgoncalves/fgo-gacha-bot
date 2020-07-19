@@ -2,11 +2,11 @@ import axios, { AxiosResponse } from 'axios';
 import cheerio from 'cheerio';
 import fs from 'fs';
 import { constants } from '../config/constants';
-import { cache } from '../util/cache';
-import { ICard } from './types';
+import { registry } from '../util/cache';
+import { Card } from './types';
 
 export abstract class Scraper<T> {
-    protected cards: ICard[];
+    protected cards: Card[];
 
     private readonly listPage: string;
 
@@ -59,17 +59,24 @@ export abstract class Scraper<T> {
         return filePath;
     }
 
-    protected getCardImagePath(card: ICard, stage?: string):string {
+    protected getCardImagePath(card: Card, stage?: string): string {
         return `${__dirname}/../../resources/images/${card.type}/cards/${card.id + (stage ? `_${stage}` : '')}.png`;
     }
 
-    protected cardImageExists(card: ICard, stage?: string): boolean {
-        return fs.existsSync(this.getCardImagePath(card, stage));
+    protected pathExists(path: string): Promise<boolean> {
+        return new Promise((resolve) => {
+            fs.access(path, fs.constants.F_OK, err => {
+                if(err)
+                    resolve(false);
+                else
+                    resolve(true);
+            })
+        });
     }
 
     protected abstract cardParseFn(cells: Cheerio, subPageResponse: AxiosResponse): void;
 
-    public abstract getCardImage(card: ICard, stage?: string): Promise<string>;
+    public abstract getCardImage(card: Card, stage?: string): Promise<string>;
 
     public async scrape(): Promise<void> {
         const response = await axios.get(this.buildPageUrl(this.listPage));
@@ -98,6 +105,6 @@ export abstract class Scraper<T> {
             });
         });
 
-        cache.set(this.cacheKey, this.cards);
+        registry.set(this.cacheKey, this.cards);
     }
 }

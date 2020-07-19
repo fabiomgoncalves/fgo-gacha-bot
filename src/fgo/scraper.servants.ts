@@ -1,11 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 import cheerio from 'cheerio';
 import { Scraper } from './scraper';
-import { CardType, ICard, IServant } from './types';
+import { CardType, Card, Servant } from './types';
 import { constants } from '../config/constants';
 import { rules } from '../config/rules';
 
-export class ScraperServants extends Scraper<IServant> {
+export class ScraperServants extends Scraper<Servant> {
     constructor() {
         super(constants.servantListPage, 'flytabs_ActiveSkillMain', constants.servantCacheKey);
     }
@@ -24,7 +24,7 @@ export class ScraperServants extends Scraper<IServant> {
 
             if (id && name && url && rarity
                 && !rules.servant.find((rule) => rule.includes(name))) {
-                const servant: IServant = {
+                const servant: Servant = {
                     id,
                     name,
                     class: cls,
@@ -38,14 +38,17 @@ export class ScraperServants extends Scraper<IServant> {
         }
     }
 
-    async getCardImage(card: ICard, stage: string): Promise<string> {
-        if (this.cardImageExists(card, stage)) {
-            return this.getCardImagePath(card, stage);
+    async getCardImage(card: Card, stage: string): Promise<string> {
+        const normalizedStage = constants.stages.includes(stage) ? stage : '1';
+        const path = this.getCardImagePath(card, normalizedStage);
+        if (await this.pathExists(path)) {
+            return path;
         }
+
+        console.log(`missing S ${card.id}[${normalizedStage}], ${card.name}`);
 
         const page = await axios.get(card.url);
         const $ = cheerio.load(page.data);
-        const normalizedStage = constants.stages.includes(stage) ? stage : '1';
         const stageImages: Record<string, string> = {};
 
         $('figure a').each((_, e) => {
@@ -63,13 +66,17 @@ export class ScraperServants extends Scraper<IServant> {
         let cardImage = stageImages[normalizedStage];
 
         if (!cardImage) {
+            if (normalizedStage === 'april') {
+                return stageImages['4'];
+            }
+
             cardImage = stageImages['13'];
         }
 
         if (!cardImage) {
             console.log(`Error: ${card}`);
         } else {
-            await this.saveCardImage(cardImage, this.getCardImagePath(card, stage));
+            await this.saveCardImage(cardImage, this.getCardImagePath(card, normalizedStage));
         }
 
         return cardImage;
