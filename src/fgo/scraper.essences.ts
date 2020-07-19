@@ -1,10 +1,10 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 import { Scraper } from './scraper';
-import { CardType, ICard } from './types';
+import { CardType, Card } from './types';
 import { constants } from '../config/constants';
 
-export class ScraperEssences extends Scraper<ICard> {
+export class ScraperEssences extends Scraper<Card> {
     constructor() {
         super(constants.essenceListPage, 'flytabs_CraftEssenceListByIDMain', constants.essenceCacheKey);
     }
@@ -15,7 +15,7 @@ export class ScraperEssences extends Scraper<ICard> {
         const rarity = this.getRarity(cells.eq(2));
 
         if (id && name && url && rarity) {
-            const essence: ICard = {
+            const essence: Card = {
                 id,
                 name,
                 rarity,
@@ -27,10 +27,13 @@ export class ScraperEssences extends Scraper<ICard> {
         }
     }
 
-    async getCardImage(card: ICard): Promise<string> {
-        if (this.cardImageExists(card)) {
-            return this.getCardImagePath(card);
+    async getCardImage(card: Card): Promise<string> {
+        const path = this.getCardImagePath(card);
+        if (await this.pathExists(path)) {
+            return path;
         }
+
+        console.log(`missing CE ${card.id}, ${card.name}`);
 
         const page = await axios.get(card.url);
         const $ = cheerio.load(page.data);

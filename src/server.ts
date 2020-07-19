@@ -4,24 +4,34 @@ import { ScraperEssences } from './fgo/scraper.essences';
 import { ScraperServants } from './fgo/scraper.servants';
 import { Gacha } from './fgo/gacha';
 import { constants } from './config/constants';
-import { cache } from './util/cache';
+import { registry } from './util/cache';
 
 const app: express.Application = express();
 const gacha = new Gacha();
 
 app.get('/', (_, res) => {
     res.json({
-        [constants.servantCacheKey]: cache.get(constants.servantCacheKey),
-        [constants.essenceCacheKey]: cache.get(constants.essenceCacheKey),
+        [constants.servantCacheKey]: registry.get(constants.servantCacheKey),
+        [constants.essenceCacheKey]: registry.get(constants.essenceCacheKey),
     });
 });
 
 app.get('/waifu', async (req, res) => {
-    res.send(await gacha.waifu(`${req.query.stage}`));
+    res.send(await gacha.waifu(`${req.query.s}`));
 });
 
 app.get('/gacha', async (req, res) => {
-    res.send(await gacha.gacha(`${req.query.stage}`, parseInt(`${req.query.howManyCards}`, 10)));
+    res.send(await gacha.gacha(`${req.query.s}`, req.query.n ? parseInt(`${req.query.n}`) : NaN));
+});
+
+app.get('/pic/gacha', async (req, res) => {
+    res.set('Content-Type', 'image/png');
+    res.send((await gacha.gacha(req.query.s as string, req.query.n ? parseInt(`${req.query.n}`) : NaN)).image);
+});
+
+app.get('/pic/waifu', async (req, res) => {
+    res.set('Content-Type', 'image/png');
+    res.send((await gacha.waifu(req.query.s as string)).image);
 });
 
 Promise.all([

@@ -1,18 +1,20 @@
-import { ICache } from './types';
-import { ICard } from '../fgo/types';
+import { Cache } from './types';
+import { Card } from '../fgo/types';
+import NodeCache from 'node-cache';
 
-const cacheManager = () => {
-    const registry: ICache = {};
+const registryManager = () => {
+    const _registry: Cache = {};
 
     return {
         get(key: string) {
-            return registry[key];
+            return _registry[key];
         },
 
-        set(key: string, val: ICard[]) {
-            registry[key] = val;
+        set(key: string, val: Card[]) {
+            _registry[key] = val;
         },
     };
 };
 
-export const cache = cacheManager();
+export const registry = registryManager();
+export const cache = new NodeCache({ stdTTL: 600, useClones: false });

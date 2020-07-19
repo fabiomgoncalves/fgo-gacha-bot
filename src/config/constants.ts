@@ -1,7 +1,7 @@
-import { IConstants } from './types';
+import { Constants } from './types';
 import { CardType } from '../fgo/types';
 
-export const constants: IConstants = {
+export const constants: Constants = {
     wikiBaseUrl: 'https://fategrandorder.fandom.com',
     servantListPage: 'Servant_List',
     essenceListPage: 'Craft_Essence_List/By_ID',
@@ -79,7 +79,65 @@ export const constants: IConstants = {
         ],
     },
 
+    get waifuRates() {
+        delete this.waifuRates;
+        return this.waifuRates = [
+            {
+                ...this.rates.servant[0],
+                rate: 0.0001,
+            },
+            {
+                ...this.rates.servant[1],
+                rate: 0.12,
+            },
+            {
+                ...this.rates.servant[2],
+                rate: 0.26 - 0.0001,
+            },
+            this.rates.servant[3],
+            this.rates.servant[4],
+            this.rates.servant[5],
+        ];
+    },
+
+    get gachaRates() {
+        delete this.gachaRates;
+        return this.gachaRates = [...this.rates.servant, ...this.rates.essence];
+    },
+
+    get silverServantRates() {
+        const fixedRates = this.rates.servant[4].rate + this.rates.servant[5].rate;
+
+        delete this.silverServantRates;
+        return this.silverServantRates = [
+            {
+                ...this.rates.servant[3],
+                rate: 1 - fixedRates,
+            },
+            this.rates.servant[4],
+            this.rates.servant[5],
+        ];
+    },
+
+    get goldenRates() {
+        const fixedRates = this.rates.servant[4].rate
+            + this.rates.servant[5].rate
+            + this.rates.essence[5].rate;
+
+        delete this.goldenRates;
+        return this.goldenRates = [
+            this.rates.servant[4],
+            this.rates.servant[5],
+            {
+                ...this.rates.essence[4],
+                rate: 1 - fixedRates,
+            },
+            this.rates.essence[5],
+        ];
+    },
+
     images: {
+        scale: 0.5,
         frame: {
             width: 512,
             height: 874,

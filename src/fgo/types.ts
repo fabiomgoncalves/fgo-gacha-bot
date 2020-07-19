@@ -1,4 +1,4 @@
-export interface ICard {
+export interface Card {
     id: number,
     type: CardType,
     name: string,
@@ -12,11 +12,16 @@ export enum CardType {
     Essence = 'essence'
 }
 
-export interface IServant extends ICard{
+export interface Servant extends Card {
     class: string
 }
 
-export interface IResponse {
+export interface Pity {
+    servant: boolean,
+    golden: boolean,
+}
+
+export interface Result {
     description: string,
     image: Buffer,
 }

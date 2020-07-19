@@ -1,6 +1,6 @@
 {
     "name": "fgo-gacha-bot",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Fate/Grand Order Gacha Bot for Discord",
     "main": "server/server.js",
     "scripts": {
@@ -19,7 +19,9 @@
         "cheerio": "^1.0.0-rc.3",
         "discord.js": "^12.2.0",
         "dotenv": "^8.2.0",
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "node-cache": "^5.1.2",
+        "seedrandom": "^3.0.5"
     },
     "devDependencies": {
         "@types/cheerio": "^0.22.18",
@@ -28,11 +30,7 @@
         "@typescript-eslint/eslint-plugin": "^3.2.0",
         "@typescript-eslint/parser": "^3.2.0",
         "eslint": "^7.2.0",
-        "eslint-config-airbnb": "^18.1.0",
         "eslint-plugin-import": "^2.21.2",
-        "eslint-plugin-jsx-a11y": "^6.2.3",
-        "eslint-plugin-react": "^7.20.0",
-        "eslint-plugin-react-hooks": "^4.0.4",
         "rimraf": "^3.0.2",
         "ts-node": "^8.10.2",
         "typescript": "^3.9.5"

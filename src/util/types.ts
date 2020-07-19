@@ -1,5 +1,5 @@
-import { ICard } from '../fgo/types';
+import { Card } from '../fgo/types';
 
-export interface ICache {
-    [key: string]: ICard[]
+export interface Cache {
+    [key: string]: Card[]
 }

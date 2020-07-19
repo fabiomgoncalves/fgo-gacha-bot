@@ -1,18 +1,18 @@
 import { CardType } from '../fgo/types';
 
-export interface IRate {
+export interface Rate {
     type: CardType,
     rarity: number,
     rate: number,
 }
 
-export interface IImageSize {
+export interface ImageSize {
     width: number,
     height: number,
     offset: number,
 }
 
-export interface IConstants {
+export interface Constants {
     wikiBaseUrl: string,
     servantListPage: string,
     essenceListPage: string,
@@ -23,23 +23,29 @@ export interface IConstants {
     stages: string[],
 
     rates: {
-        [CardType.Servant]: IRate[],
-        [CardType.Essence]: IRate[],
+        [CardType.Servant]: Rate[],
+        [CardType.Essence]: Rate[],
     },
 
+    waifuRates: Rate[]
+    gachaRates: Rate[]
+    silverServantRates: Rate[]
+    goldenRates: Rate[]
+
     images: {
-        frame: IImageSize,
-        class: IImageSize,
-        [CardType.Servant]: IImageSize,
-        [CardType.Essence]: IImageSize,
+        scale: number,
+        frame: ImageSize,
+        class: ImageSize,
+        [CardType.Servant]: ImageSize,
+        [CardType.Essence]: ImageSize,
     }
 }
 
-export interface IRules {
+export interface Rules {
     [CardType.Servant]: string[]
 }
 
-export interface IConfig {
+export interface Config {
     cardsPerRoll: number,
     cardsPerRow: number,
     cardMargin: number,

@@ -1,20 +1,21 @@
 import { Command, CommandMessage, Discord } from '@typeit/discord';
 import { MessageAttachment, MessageEmbed } from 'discord.js';
 import { Gacha } from '../fgo/gacha';
-import { IResponse } from '../fgo/types';
+import { Result } from '../fgo/types';
 
 interface CommandArgs {
     stage: string;
-    howManyCards: number
+    cards: number
 }
 
 @Discord('!!')
 export class DiscordApp {
-    @Command('gacha :stage :howManyCards')
+    @Command('gacha :stage :cards')
     async gacha(command: CommandMessage<CommandArgs>): Promise<void> {
-        const { stage, howManyCards } = command.args;
+        const { stage, cards } = command.args;
+        const user = command.author.id;
         const gacha = new Gacha();
-        const response = await gacha.gacha(stage, howManyCards);
+        const response = await gacha.gacha(stage, cards, user);
 
         this.sendResponse(command, response, 'here is your roll:');
     }
@@ -22,15 +23,16 @@ export class DiscordApp {
     @Command('waifu :stage')
     async waifu(command: CommandMessage<CommandArgs>): Promise<void> {
         const { stage } = command.args;
+        const user = command.author.id;
         const gacha = new Gacha();
-        const response = await gacha.waifu(stage);
+        const response = await gacha.waifu(stage, user);
 
-        this.sendResponse(command, response, 'here is your waifu:');
+        this.sendResponse(command, response, 'here is your waifu, how lucky!');
     }
 
     async sendResponse(
         command: CommandMessage<CommandArgs>,
-        response: IResponse,
+        response: Result,
         content: string,
     ): Promise<void> {
         const attachment = new MessageAttachment(response.image, 'result.png');
